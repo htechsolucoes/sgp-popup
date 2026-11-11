@@ -39,7 +39,7 @@ function Shell({ children }) {
 
 function Message({ tone = "info", children }) {
   const styles = {
-    info: "border-slate-200 bg-white text-slate-500",
+    info: "border-htech-100 bg-htech-50 text-htech-darker",
     warn: "border-amber-200 bg-amber-50 text-amber-700",
     error: "border-red-200 bg-red-50 text-red-700"
   };
@@ -100,10 +100,10 @@ export default function App() {
             <button
               key={c.id}
               onClick={() => setSelectedId(c.id)}
-              className={`whitespace-nowrap rounded-full border px-3 py-1 text-xs font-medium transition ${
+              className={`whitespace-nowrap rounded-full border px-3 py-1 text-sm font-medium transition ${
                 c.id === contrato.id
-                  ? "border-htech bg-htech text-white"
-                  : "border-slate-200 bg-white text-slate-600 hover:border-htech hover:text-htech"
+                  ? "border-htech-darker bg-htech-darker text-white"
+                  : "border-htech-100 bg-htech-50 text-htech-dark hover:border-htech hover:text-htech-darker"
               }`}
             >
               Contrato {c.id}

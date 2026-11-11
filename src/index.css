@@ -1,8 +1,11 @@
 @import "tailwindcss";
 
 @theme {
+  --color-htech-50: #eaf5fe;
+  --color-htech-100: #cfe8fd;
   --color-htech: #0492f7;
   --color-htech-dark: #0377c9;
+  --color-htech-darker: #035a99;
   --color-htech-gray: #9ca3af;
 }
 
@@ -12,5 +15,5 @@ body {
 }
 
 body {
-  @apply bg-slate-50 text-slate-800 antialiased;
+  @apply bg-white text-slate-800 antialiased;
 }

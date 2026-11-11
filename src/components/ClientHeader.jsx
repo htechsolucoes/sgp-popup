@@ -7,8 +7,8 @@ import { IconCheck, IconCopy, IconRefresh } from "./Icons";
 function Chip({ children, highlight }) {
   return (
     <span
-      className={`whitespace-nowrap rounded-full border px-3 py-1 text-xs font-medium ${
-        highlight ? "border-htech/30 bg-htech/10 text-htech" : "border-slate-200 bg-white text-slate-600"
+      className={`whitespace-nowrap rounded-full px-3 py-1 text-sm font-medium ${
+        highlight ? "bg-white text-htech-darker" : "border border-white/25 bg-white/15 text-white"
       }`}
     >
       {children}
@@ -31,22 +31,22 @@ export default function ClientHeader({ nome, cpfCnpj, resumo, onRefresh, refresh
   }
 
   return (
-    <header className="flex items-center justify-between gap-4">
+    <header className="flex items-center justify-between gap-4 rounded-xl bg-gradient-to-r from-htech to-htech-darker p-4 text-white shadow-sm">
       <div className="flex min-w-0 items-center gap-3">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-htech text-sm font-semibold text-white">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-sm font-bold text-htech-darker">
           {initials(nome)}
         </div>
         <div className="min-w-0">
-          <h1 className="truncate text-base font-semibold uppercase text-slate-800" title={nome}>
+          <h1 className="truncate text-base font-semibold uppercase" title={nome}>
             {nome}
           </h1>
           <button
             onClick={copy}
             title="Copiar"
-            className="flex items-center gap-1 text-xs text-htech-gray transition hover:text-htech"
+            className="flex items-center gap-1 text-sm text-htech-100 transition hover:text-white"
           >
             {docLabel} {formatCpfCnpj(cpfCnpj)}
-            {copied ? <IconCheck width={13} height={13} /> : <IconCopy width={13} height={13} />}
+            {copied ? <IconCheck width={14} height={14} /> : <IconCopy width={14} height={14} />}
           </button>
         </div>
       </div>
@@ -62,7 +62,7 @@ export default function ClientHeader({ nome, cpfCnpj, resumo, onRefresh, refresh
           onClick={onRefresh}
           disabled={refreshing}
           title="Atualizar"
-          className="rounded-lg border border-slate-200 bg-white p-2 text-htech-gray transition hover:border-htech hover:text-htech disabled:opacity-50"
+          className="rounded-lg bg-white/15 p-2 text-white transition hover:bg-white/25 disabled:opacity-50"
         >
           <IconRefresh className={refreshing ? "animate-spin" : ""} />
         </button>
