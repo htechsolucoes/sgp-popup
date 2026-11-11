@@ -13,7 +13,10 @@ export default async function handler(req, res) {
   }
 
   try {
-    return send(res, await wtsRequest(`/contact/${encodeURIComponent(id)}`));
+    return send(
+      res,
+      await wtsRequest(`/contact/${encodeURIComponent(id)}?IncludeDetails=CustomFields`)
+    );
   } catch (err) {
     return res.status(500).json({ error: "Erro ao buscar contato", detail: err.message });
   }
