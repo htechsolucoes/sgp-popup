@@ -17,9 +17,11 @@ async function request(path, { method = "GET", body } = {}) {
 
   if (!response.ok) {
     const bodyText = await response.text().catch(() => "");
-    throw new Error(
+    const error = new Error(
       `API request failed: ${response.status} ${response.statusText} - ${bodyText}`
     );
+    error.status = response.status; // usado pela tela para escolher a mensagem
+    throw error;
   }
 
   return response.json().catch(() => ({}));
