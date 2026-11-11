@@ -27,17 +27,47 @@ async function request(path, { method = "GET", body } = {}) {
   return response.json().catch(() => ({}));
 }
 
+/** Lê um campo personalizado, aceitando objeto ou lista em customFields. */
+function getCustomField(customFields, key) {
+  if (!customFields) return "";
+
+  if (Array.isArray(customFields)) {
+    const wanted = key.toLowerCase();
+    const field = customFields.find(item =>
+      [item?.key, item?.name, item?.label, item?.id]
+        .filter(Boolean)
+        .some(name => String(name).toLowerCase() === wanted)
+    );
+    return field?.value ?? "";
+  }
+
+  return customFields[key] ?? "";
+}
+
+/** Formata CPF (11 dígitos) ou CNPJ (14 dígitos) para exibição. */
+export function formatCpfCnpj(digits = "") {
+  if (digits.length === 11) {
+    return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+  }
+  if (digits.length === 14) {
+    return digits.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5");
+  }
+  return digits;
+}
+
 /**
  * Normaliza o contato da wts.chat.
- * Os nomes dos campos ainda vão ser confirmados com a resposta real;
- * por isso há alternativas e o objeto original fica em `raw`.
+ * O objeto original fica em `raw`.
  */
 export function normalizeContact(contact = {}) {
+  const cpfCnpj = String(getCustomField(contact.customFields, "cpf-cnpj") || "").replace(/\D/g, "");
+
   return {
     id: contact.id,
     name: contact.name || contact.displayName || "",
     phone: contact.phonenumber || contact.phoneNumber || contact.phone || "",
     email: contact.email || "",
+    cpfCnpj, // só números, ex.: "12345678901". Vazio se o contato não tiver o campo.
     raw: contact
   };
 }
