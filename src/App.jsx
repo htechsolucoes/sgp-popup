@@ -34,7 +34,7 @@ function sgpErrorMessage(error) {
 }
 
 function Shell({ children }) {
-  return <main className="mx-auto w-full max-w-[851px] p-4">{children}</main>;
+  return <main className="w-full p-4">{children}</main>;
 }
 
 function Message({ tone = "info", children }) {
