@@ -25,49 +25,23 @@ async function request(path, { method = "GET", body } = {}) {
   return response.json().catch(() => ({}));
 }
 
-const PROFILES = {
-  ADMIN: "Administrador",
-  AGENT: "Atendente",
-  RESTRICTED_AGENT: "Atendente Restrito"
-};
-
-export function translateProfile(profile) {
-  return PROFILES[profile] || profile || "";
-}
-
-export function normalizeUser(user) {
+/**
+ * Normaliza o contato da wts.chat.
+ * Os nomes dos campos ainda vão ser confirmados com a resposta real;
+ * por isso há alternativas e o objeto original fica em `raw`.
+ */
+export function normalizeContact(contact = {}) {
   return {
-    id: user.id,
-    userId: user.userId,
-    name: user.name,
-    profile: translateProfile(user.profile || user.role),
-    available: user.available || user.availability,
-    isOwner: user.isOwner === true,
-    since: user.since || null,
-    color: user.color || "#3E7BD6"
+    id: contact.id,
+    name: contact.name || contact.displayName || "",
+    phone: contact.phonenumber || contact.phoneNumber || contact.phone || "",
+    email: contact.email || "",
+    raw: contact
   };
 }
 
-/** Lista todos os atendentes (já normalizados). */
-export async function fetchUsers() {
-  const data = await request("/agent");
-
-  if (!Array.isArray(data)) {
-    throw new Error("Resposta de usuários inválida");
-  }
-
-  return data.map(normalizeUser);
-}
-
-/** Busca um atendente pelo id (resposta crua da API). */
-export function fetchUser(userId) {
-  return request(`/agent/${encodeURIComponent(userId)}`);
-}
-
-/** Atualiza a disponibilidade, ex.: "AVAILABLE" | "UNAVAILABLE". */
-export function updateUserAvailability(userId, availability) {
-  return request(`/agent/${encodeURIComponent(userId)}`, {
-    method: "PUT",
-    body: { availability, fields: ["Availability"] }
-  });
+/** Busca um contato pelo id. */
+export async function fetchContact(contactId) {
+  const data = await request(`/contact/${encodeURIComponent(contactId)}`);
+  return normalizeContact(data);
 }
