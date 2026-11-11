@@ -77,3 +77,13 @@ export async function fetchContact(contactId) {
   const data = await request(`/contact/${encodeURIComponent(contactId)}`);
   return normalizeContact(data);
 }
+
+/** Cliente, contratos e faturas em aberto no SGP. */
+export function fetchSgpCliente(cpfCnpj) {
+  return request(`/sgp/cliente?cpfcnpj=${encodeURIComponent(cpfCnpj)}`);
+}
+
+/** Conexão, sinal e temperatura da ONU de um contrato. */
+export function fetchOnu(contratoId) {
+  return request(`/sgp/onu?contrato=${encodeURIComponent(contratoId)}`);
+}

@@ -7,7 +7,9 @@ import tailwindcss from "@tailwindcss/vite";
 // Em produção (Vercel) as mesmas funções rodam como serverless.
 function localApi() {
   const routes = [
-    { pattern: /^\/api\/contact\/([^/]+)\/?$/, file: "./api/contact/[id].js", param: "id" }
+    { pattern: /^\/api\/contact\/([^/]+)\/?$/, file: "./api/contact/[id].js", param: "id" },
+    { pattern: /^\/api\/sgp\/cliente\/?$/, file: "./api/sgp/cliente.js" },
+    { pattern: /^\/api\/sgp\/onu\/?$/, file: "./api/sgp/onu.js" }
   ];
 
   return {

@@ -1,5 +1,11 @@
+import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+
 import { useContact } from "./hooks/useContact";
-import { formatCpfCnpj } from "./services/api";
+import { useSgpCliente } from "./hooks/useSgp";
+import ClientHeader from "./components/ClientHeader";
+import ContractCard from "./components/ContractCard";
+import InvoiceList from "./components/InvoiceList";
 
 // Aceita /?contactId=ID ou /ID
 function getContactId() {
@@ -14,60 +20,103 @@ function getContactId() {
 
 const contactId = getContactId();
 
-function errorMessage(error) {
+function contactErrorMessage(error) {
   if (error?.status === 404 || error?.status === 400) {
     return "Contato não encontrado na wts.chat. Verifique se o ID está correto.";
   }
   return "Não foi possível carregar os dados do contato. Tente novamente em instantes.";
 }
 
-function Field({ label, value }) {
-  return (
-    <div>
-      <p className="text-xs uppercase tracking-wide text-slate-400">{label}</p>
-      <p className="text-slate-800">{value || "—"}</p>
-    </div>
-  );
+function sgpErrorMessage(error) {
+  if (error?.status === 404) return "Nenhum cliente com este CPF/CNPJ foi encontrado no SGP.";
+  if (error?.status === 504) return "O SGP demorou para responder. Tente novamente em instantes.";
+  return "Não foi possível consultar o SGP. Tente novamente em instantes.";
 }
 
-function ErrorBox({ children }) {
-  return (
-    <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">{children}</div>
-  );
+function Shell({ children }) {
+  return <main className="mx-auto w-full max-w-[851px] p-4">{children}</main>;
+}
+
+function Message({ tone = "info", children }) {
+  const styles = {
+    info: "border-slate-200 bg-white text-slate-500",
+    warn: "border-amber-200 bg-amber-50 text-amber-700",
+    error: "border-red-200 bg-red-50 text-red-700"
+  };
+  return <div className={`rounded-xl border p-4 text-sm ${styles[tone]}`}>{children}</div>;
 }
 
 export default function App() {
-  const { data: contact, isLoading, error } = useContact(contactId);
+  const queryClient = useQueryClient();
+  const contact = useContact(contactId);
+  const cpfCnpj = contact.data?.cpfCnpj || "";
+  const sgp = useSgpCliente(cpfCnpj);
+  const [selectedId, setSelectedId] = useState(null);
+
+  if (!contactId) {
+    return (
+      <Shell>
+        <Message tone="error">Nenhum contato informado. Abra este popup a partir de um atendimento.</Message>
+      </Shell>
+    );
+  }
+
+  if (contact.isLoading) return <Shell><Message>Carregando contato...</Message></Shell>;
+  if (contact.error) return <Shell><Message tone="error">{contactErrorMessage(contact.error)}</Message></Shell>;
+
+  if (!cpfCnpj) {
+    return (
+      <Shell>
+        <Message tone="error">Este contato não tem o campo "cpf-cnpj" preenchido na wts.chat.</Message>
+      </Shell>
+    );
+  }
+
+  if (sgp.isLoading) return <Shell><Message>Buscando cliente no SGP...</Message></Shell>;
+  if (sgp.error) return <Shell><Message tone="error">{sgpErrorMessage(sgp.error)}</Message></Shell>;
+
+  const { cliente, resumo, contratos, avisos = [] } = sgp.data;
+  const contrato = contratos.find(c => c.id === selectedId) || contratos[0];
 
   return (
-    <main className="mx-auto max-w-2xl p-6">
-      <h1 className="mb-6 text-2xl font-semibold text-slate-800">Contato</h1>
+    <Shell>
+      <ClientHeader
+        nome={cliente.nome}
+        cpfCnpj={cliente.cpfCnpj}
+        resumo={resumo}
+        refreshing={sgp.isFetching}
+        onRefresh={() => queryClient.invalidateQueries()}
+      />
 
-      {!contactId && (
-        <ErrorBox>Nenhum contato informado. Abra este popup a partir de um atendimento.</ErrorBox>
+      {avisos.map(aviso => (
+        <div key={aviso} className="mt-3">
+          <Message tone="warn">{aviso}</Message>
+        </div>
+      ))}
+
+      {contratos.length > 1 && (
+        <nav className="mt-3 flex gap-2 overflow-x-auto pb-1">
+          {contratos.map(c => (
+            <button
+              key={c.id}
+              onClick={() => setSelectedId(c.id)}
+              className={`whitespace-nowrap rounded-full border px-3 py-1 text-xs font-medium transition ${
+                c.id === contrato.id
+                  ? "border-htech bg-htech text-white"
+                  : "border-slate-200 bg-white text-slate-600 hover:border-htech hover:text-htech"
+              }`}
+            >
+              Contrato {c.id}
+              {c.faturas.length > 0 && ` · ${c.faturas.length} em aberto`}
+            </button>
+          ))}
+        </nav>
       )}
 
-      {contactId && isLoading && <p className="text-slate-500">Carregando...</p>}
-
-      {error && <ErrorBox>{errorMessage(error)}</ErrorBox>}
-
-      {contact && (
-        <section className="space-y-4 rounded-lg border border-slate-200 bg-white p-4">
-          <Field label="Nome" value={contact.name} />
-          <Field label="Telefone" value={contact.phone} />
-          <Field label="E-mail" value={contact.email} />
-          <Field label="CPF/CNPJ" value={formatCpfCnpj(contact.cpfCnpj)} />
-          <Field label="ID" value={contact.id} />
-
-          {/* Temporário: para vermos todos os campos que a wts.chat devolve */}
-          <details className="text-sm">
-            <summary className="cursor-pointer text-slate-500">Resposta completa</summary>
-            <pre className="mt-2 overflow-auto rounded bg-slate-50 p-3 text-xs text-slate-700">
-              {JSON.stringify(contact.raw, null, 2)}
-            </pre>
-          </details>
-        </section>
-      )}
-    </main>
+      <div className="mt-3 grid grid-cols-2 items-start gap-3">
+        <ContractCard contrato={contrato} />
+        <InvoiceList faturas={contrato.faturas} total={contrato.totalAberto} />
+      </div>
+    </Shell>
   );
 }
