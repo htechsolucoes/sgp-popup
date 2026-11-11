@@ -4,8 +4,15 @@ import { useContact } from "./hooks/useContact";
 const DEFAULT_CONTACT_ID = "862e827f-5003-4dd9-ab75-1624c1fd7ddd";
 
 function getContactId() {
-  const params = new URLSearchParams(window.location.search);
-  return params.get("contactId") || DEFAULT_CONTACT_ID;
+  // formato 1: /?contactId=ID
+  const fromQuery = new URLSearchParams(window.location.search).get("contactId");
+  if (fromQuery) return fromQuery;
+
+  // formato 2: /ID
+  const fromPath = window.location.pathname.split("/").filter(Boolean)[0];
+  if (fromPath) return decodeURIComponent(fromPath);
+
+  return DEFAULT_CONTACT_ID;
 }
 
 const contactId = getContactId();
