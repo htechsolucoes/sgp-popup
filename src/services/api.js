@@ -21,6 +21,11 @@ async function request(path, { method = "GET", body } = {}) {
       `API request failed: ${response.status} ${response.statusText} - ${bodyText}`
     );
     error.status = response.status; // usado pela tela para escolher a mensagem
+    try {
+      error.data = JSON.parse(bodyText);
+    } catch {
+      error.data = null;
+    }
     throw error;
   }
 
@@ -91,4 +96,28 @@ export function fetchOnu(contratoId) {
 /** Gera (ou recupera) o PIX copia e cola de uma fatura. */
 export function fetchPix(faturaId, contratoId) {
   return request("/sgp/pix", { method: "POST", body: { fatura: faturaId, contrato: contratoId } });
+}
+
+/** Mensagem amigável vinda do servidor, ou o texto padrão. */
+export function apiErrorMessage(error, fallback) {
+  return error?.data?.error || fallback;
+}
+
+export function fetchManutencoes(filtro) {
+  const qs = new URLSearchParams(
+    Object.entries(filtro).filter(([, v]) => v !== undefined && v !== null && v !== "")
+  ).toString();
+  return request(`/sgp/manutencao${qs ? `?${qs}` : ""}`);
+}
+
+export function fetchPppoe(login) {
+  return request(`/sgp/pppoe?login=${encodeURIComponent(login)}`);
+}
+
+export function fetchWifi(servicoId) {
+  return request(`/sgp/wifi?servico=${encodeURIComponent(servicoId)}`);
+}
+
+export function runAcao(acao, dados) {
+  return request("/sgp/acao", { method: "POST", body: { acao, ...dados } });
 }

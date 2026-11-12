@@ -11,6 +11,10 @@ function normalizarOnu(onu) {
   return {
     encontrada: true,
     id: onu.id,
+    servicoId: onu.service_id ?? null, // usado pelo Gerenciador CPE (roteador e Wi-Fi)
+    oltId: onu.olt_id ?? null,
+    slot: onu.slot ?? null,
+    pon: onu.pon ?? null,
     online: typeof onu.online === "boolean" ? onu.online : null,
     rx: toNumber(onu.info_rx), // sinal recebido pela ONU (dBm)
     tx: toNumber(onu.info_tx), // potência de transmissão da ONU (dBm)

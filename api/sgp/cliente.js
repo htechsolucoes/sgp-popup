@@ -35,6 +35,8 @@ function normalizarContrato(c, faturas) {
     statusCodigo: Number(c.contratoStatus) || null, // 1 Ativo, 2 Inativo, 3 Cancelado, 4 Suspenso, 5 Reduzido
     endereco: montarEndereco(c),
     login: c.servico_login || "",
+    popId: c.popId ?? null,
+    motivoStatus: String(c.motivo_status || "").trim(),
     faturas,
     totalAberto: faturas.reduce((soma, f) => soma + f.valor, 0)
   };

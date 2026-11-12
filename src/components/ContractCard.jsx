@@ -1,6 +1,7 @@
 import { useOnu } from "../hooks/useSgp";
 import { formatDecimal } from "../utils/format";
-import { IconPin } from "./Icons";
+import { useContractActions } from "./ContractActions";
+import { IconLockOpen, IconPin, IconPower, IconRouter } from "./Icons";
 
 const STATUS_STYLE = {
   1: "bg-emerald-100 text-emerald-700", // Ativo
@@ -38,8 +39,23 @@ function Tile({ label, children }) {
   );
 }
 
+function ActionButton({ icon, label, disabled, disabledReason, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      title={disabled ? disabledReason : label}
+      className="flex items-center justify-center gap-1.5 rounded-lg border border-htech bg-white px-3 py-2 text-sm font-medium text-htech transition hover:bg-htech-50 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-htech-gray disabled:hover:bg-white"
+    >
+      {icon}
+      {label}
+    </button>
+  );
+}
+
 export default function ContractCard({ contrato }) {
   const { data: onu, isLoading, error } = useOnu(contrato.id);
+  const actions = useContractActions(contrato, onu);
 
   const fallback = isLoading ? (
     <div className="h-5 w-16 animate-pulse rounded bg-htech-100" />
@@ -53,10 +69,7 @@ export default function ContractCard({ contrato }) {
   const rx = onu?.rx ?? null;
   const signal = rx !== null ? signalInfo(rx) : null;
   const leitura = formatLeitura(onu?.leitura);
-
-  const tx = onu?.tx ?? null;
-  const oltRx = onu?.oltRx ?? null;
-  const temEquipamento = tx !== null || oltRx !== null;
+  const suspenso = contrato.statusCodigo === 4;
 
   return (
     <section className="overflow-hidden rounded-xl border border-htech-100 bg-white shadow-sm">
@@ -75,6 +88,21 @@ export default function ContractCard({ contrato }) {
       </div>
 
       <div className="p-4">
+        {suspenso && (
+          <div className="mb-3 flex items-center justify-between gap-3 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2">
+            <span className="text-sm text-amber-800">
+              Contrato suspenso{contrato.motivoStatus && ` · ${contrato.motivoStatus}`}
+            </span>
+            <button
+              onClick={() => actions.open("liberar")}
+              className="flex shrink-0 items-center gap-1 rounded-lg bg-amber-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-amber-700"
+            >
+              <IconLockOpen width={14} height={14} />
+              Liberar por confiança
+            </button>
+          </div>
+        )}
+
         {contrato.endereco && (
           <p className="flex gap-1.5 text-sm uppercase leading-relaxed text-slate-600">
             <IconPin className="mt-0.5 shrink-0 text-htech" width={15} height={15} />
@@ -122,6 +150,27 @@ export default function ContractCard({ contrato }) {
           </Tile>
         </div>
 
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <ActionButton
+            icon={<IconPower width={15} height={15} />}
+            label="Reiniciar ONU"
+            disabled={!onu?.id}
+            disabledReason="ONU não encontrada para este contrato"
+            onClick={() => actions.open("reiniciar-onu")}
+          />
+          <ActionButton
+            icon={<IconRouter width={15} height={15} />}
+            label="Reiniciar roteador"
+            disabled={!onu?.servicoId}
+            disabledReason="Roteador não encontrado para este contrato"
+            onClick={() => actions.open("reiniciar-roteador")}
+          />
+        </div>
+
+        {actions.feedback && (
+          <p className="mt-2 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{actions.feedback}</p>
+        )}
+
         {DEBUG && onu?.raw && (
           <details className="mt-3 text-sm">
             <summary className="cursor-pointer text-htech-dark">Resposta da ONU (debug)</summary>
@@ -131,6 +180,8 @@ export default function ContractCard({ contrato }) {
           </details>
         )}
       </div>
+
+      {actions.dialog}
     </section>
   );
 }

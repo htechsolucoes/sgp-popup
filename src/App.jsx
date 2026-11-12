@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-
 import { useContact } from "./hooks/useContact";
 import { useSgpCliente } from "./hooks/useSgp";
 import ClientHeader from "./components/ClientHeader";
 import ContractCard from "./components/ContractCard";
 import InvoiceList from "./components/InvoiceList";
+import MaintenanceBanner from "./components/MaintenanceBanner";
+import PppoeCard from "./components/PppoeCard";
+import WifiCard from "./components/WifiCard";
 
 // Aceita /?contactId=ID ou /ID
 function getContactId() {
@@ -15,6 +17,7 @@ function getContactId() {
   const fromPath = window.location.pathname.split("/").filter(Boolean)[0];
   if (fromPath) return decodeURIComponent(fromPath);
 
+  // só no npm run dev: contato fixo do .env.development.local
   return (import.meta.env.DEV && import.meta.env.VITE_DEV_CONTACT_ID) || null;
 }
 
@@ -49,8 +52,11 @@ function Message({ tone = "info", children }) {
 export default function App() {
   const queryClient = useQueryClient();
   const contact = useContact(contactId);
+
+  // só no npm run dev: VITE_DEV_CPF sobrescreve o CPF do contato
   const devCpf = import.meta.env.DEV ? String(import.meta.env.VITE_DEV_CPF || "").replace(/\D/g, "") : "";
   const cpfCnpj = devCpf || contact.data?.cpfCnpj || "";
+
   const sgp = useSgpCliente(cpfCnpj);
   const [selectedId, setSelectedId] = useState(null);
 
@@ -81,6 +87,8 @@ export default function App() {
 
   return (
     <Shell>
+      <MaintenanceBanner key={`m-${contrato.id}`} contrato={contrato} />
+
       <ClientHeader
         nome={cliente.nome}
         cpfCnpj={cliente.cpfCnpj}
@@ -115,8 +123,14 @@ export default function App() {
       )}
 
       <div className="mt-3 grid grid-cols-2 items-start gap-3">
-        <ContractCard contrato={contrato} />
-        <InvoiceList faturas={contrato.faturas} total={contrato.totalAberto} />
+        <div className="flex min-w-0 flex-col gap-3">
+          <ContractCard key={`c-${contrato.id}`} contrato={contrato} />
+          <PppoeCard key={`p-${contrato.id}`} login={contrato.login} />
+        </div>
+        <div className="flex min-w-0 flex-col gap-3">
+          <InvoiceList faturas={contrato.faturas} total={contrato.totalAberto} />
+          <WifiCard key={`w-${contrato.id}`} contratoId={contrato.id} />
+        </div>
       </div>
     </Shell>
   );

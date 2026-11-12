@@ -10,7 +10,11 @@ function localApi() {
     { pattern: /^\/api\/contact\/([^/]+)\/?$/, file: "./api/contact/[id].js", param: "id" },
     { pattern: /^\/api\/sgp\/cliente\/?$/, file: "./api/sgp/cliente.js" },
     { pattern: /^\/api\/sgp\/onu\/?$/, file: "./api/sgp/onu.js" },
-    { pattern: /^\/api\/sgp\/pix\/?$/, file: "./api/sgp/pix.js" }
+    { pattern: /^\/api\/sgp\/pix\/?$/, file: "./api/sgp/pix.js" },
+    { pattern: /^\/api\/sgp\/manutencao\/?$/, file: "./api/sgp/manutencao.js" },
+    { pattern: /^\/api\/sgp\/pppoe\/?$/, file: "./api/sgp/pppoe.js" },
+    { pattern: /^\/api\/sgp\/wifi\/?$/, file: "./api/sgp/wifi.js" },
+    { pattern: /^\/api\/sgp\/acao\/?$/, file: "./api/sgp/acao.js" }
   ];
 
   return {
