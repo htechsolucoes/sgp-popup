@@ -30,12 +30,12 @@ function contactError(error) {
   if (error?.status === 404 || error?.status === 400) {
     return {
       title: "Contato não encontrado",
-      description: "Não encontramos este contato na wts.chat. Abra o popup de novo a partir da conversa."
+      description: "Não encontramos este contato na Htech. Abra o popup de novo a partir da conversa."
     };
   }
   return {
     title: "Não foi possível carregar o contato",
-    description: "A wts.chat não respondeu como esperado. Tente novamente em instantes."
+    description: "A Htech não respondeu como esperado. Tente novamente em instantes."
   };
 }
 
@@ -92,7 +92,7 @@ export default function App() {
     return (
       <StatusScreen
         title="CPF/CNPJ não informado"
-        description='Preencha o campo "cpf-cnpj" deste contato na wts.chat e tente novamente.'
+        description='Preencha o campo "CPF/CNPJ" deste contato nos dados do contato e tente novamente.'
         onRetry={() => contact.refetch()}
       />
     );
