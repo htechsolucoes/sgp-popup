@@ -15,7 +15,7 @@ function getContactId() {
   const fromPath = window.location.pathname.split("/").filter(Boolean)[0];
   if (fromPath) return decodeURIComponent(fromPath);
 
-  return null;
+  return (import.meta.env.DEV && import.meta.env.VITE_DEV_CONTACT_ID) || null;
 }
 
 const contactId = getContactId();
@@ -49,7 +49,8 @@ function Message({ tone = "info", children }) {
 export default function App() {
   const queryClient = useQueryClient();
   const contact = useContact(contactId);
-  const cpfCnpj = contact.data?.cpfCnpj || "";
+  const devCpf = import.meta.env.DEV ? String(import.meta.env.VITE_DEV_CPF || "").replace(/\D/g, "") : "";
+  const cpfCnpj = devCpf || contact.data?.cpfCnpj || "";
   const sgp = useSgpCliente(cpfCnpj);
   const [selectedId, setSelectedId] = useState(null);
 

@@ -1,54 +1,25 @@
-// GET /api/sgp/onu?contrato=ID -> conexão, sinal, temperatura e distância da ONU do contrato
+// GET /api/sgp/onu?contrato=ID -> conexão e sinal da ONU do contrato
 import { sgpRequest, isTimeout } from "../_lib/sgp.js";
 
-// Os nomes exatos dos campos de sinal variam; procuramos pelos mais comuns.
-const KEYS = {
-  conexao: ["connection", "conexao", "status_conexao", "connection_status", "onu_status", "state"],
-  rx: ["rx", "rx_power", "rxpower", "onu_rx", "rx_onu", "sinal_rx", "signal_rx", "rx_dbm", "signal", "sinal"],
-  temperatura: ["temperature", "temperatura", "temp", "onu_temperature"],
-  distancia: ["distance", "distancia", "onu_distance"]
-};
-
-function findValue(obj, keys, depth = 0) {
-  if (!obj || typeof obj !== "object" || depth > 2) return undefined;
-
-  for (const [key, value] of Object.entries(obj)) {
-    if (keys.includes(key.toLowerCase()) && value !== null && value !== "" && typeof value !== "object") {
-      return value;
-    }
-  }
-
-  for (const value of Object.values(obj)) {
-    if (value && typeof value === "object") {
-      const found = findValue(value, keys, depth + 1);
-      if (found !== undefined) return found;
-    }
-  }
-
-  return undefined;
-}
-
 function toNumber(value) {
-  if (value === undefined || value === null) return null;
+  if (value === undefined || value === null || value === "") return null;
   const n = parseFloat(String(value).replace(",", "."));
   return Number.isFinite(n) ? n : null;
 }
 
 function normalizarOnu(onu) {
-  const conexaoRaw = findValue(onu, KEYS.conexao);
-  const conexao =
-    typeof conexaoRaw === "boolean" ? (conexaoRaw ? "Online" : "Offline") : conexaoRaw ? String(conexaoRaw) : "";
-
-  let distanciaKm = toNumber(findValue(onu, KEYS.distancia));
-  if (distanciaKm !== null && distanciaKm > 100) distanciaKm = distanciaKm / 1000; // veio em metros
-
   return {
     encontrada: true,
-    conexao,
-    rx: toNumber(findValue(onu, KEYS.rx)),
-    temperatura: toNumber(findValue(onu, KEYS.temperatura)),
-    distanciaKm,
-    modelo: onu.type || "",
+    id: onu.id,
+    online: typeof onu.online === "boolean" ? onu.online : null,
+    rx: toNumber(onu.info_rx), // sinal recebido pela ONU (dBm)
+    tx: toNumber(onu.info_tx), // potência de transmissão da ONU (dBm)
+    oltRx: toNumber(onu.info_olt_rx), // sinal recebido pela OLT (dBm)
+    leitura: onu.info_date || "", // data da última coleta de sinal
+    olt: onu.olt_name || "",
+    posicao: [onu.slot, onu.pon, onu.onuid].every(v => v !== undefined && v !== null)
+      ? `${onu.slot}/${onu.pon}/${onu.onuid}`
+      : "",
     raw: onu
   };
 }

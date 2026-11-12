@@ -87,3 +87,8 @@ export function fetchSgpCliente(cpfCnpj) {
 export function fetchOnu(contratoId) {
   return request(`/sgp/onu?contrato=${encodeURIComponent(contratoId)}`);
 }
+
+/** Gera (ou recupera) o PIX copia e cola de uma fatura. */
+export function fetchPix(faturaId, contratoId) {
+  return request("/sgp/pix", { method: "POST", body: { fatura: faturaId, contrato: contratoId } });
+}

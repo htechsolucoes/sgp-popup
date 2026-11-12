@@ -9,7 +9,8 @@ function localApi() {
   const routes = [
     { pattern: /^\/api\/contact\/([^/]+)\/?$/, file: "./api/contact/[id].js", param: "id" },
     { pattern: /^\/api\/sgp\/cliente\/?$/, file: "./api/sgp/cliente.js" },
-    { pattern: /^\/api\/sgp\/onu\/?$/, file: "./api/sgp/onu.js" }
+    { pattern: /^\/api\/sgp\/onu\/?$/, file: "./api/sgp/onu.js" },
+    { pattern: /^\/api\/sgp\/pix\/?$/, file: "./api/sgp/pix.js" }
   ];
 
   return {

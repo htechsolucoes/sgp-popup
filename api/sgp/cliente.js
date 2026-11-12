@@ -22,7 +22,8 @@ function normalizarFatura(t) {
     valor: Number(t.valorCorrigido ?? t.valor ?? 0),
     link: t.link || "",
     linkPagamento: t.link_cobranca || "",
-    linhaDigitavel: t.linhaDigitavel || ""
+    linhaDigitavel: t.linhaDigitavel || "",
+    codigoPix: t.codigoPix || ""
   };
 }
 

@@ -21,6 +21,14 @@ function signalInfo(rx) {
 // marcador: -30 dBm (0%) até -10 dBm (100%)
 const signalPosition = rx => Math.min(100, Math.max(0, ((rx + 30) / 20) * 100));
 
+// "2026-11-12 07:11:55" -> "12/11 07:11"
+function formatLeitura(value) {
+  const m = String(value || "").match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);
+  return m ? `${m[3]}/${m[2]} ${m[4]}:${m[5]}` : "";
+}
+
+const dbm = value => `${formatDecimal(value, 2)} dBm`;
+
 function Tile({ label, children }) {
   return (
     <div className="rounded-lg border border-htech-100 bg-htech-50 p-2.5">
@@ -41,15 +49,14 @@ export default function ContractCard({ contrato }) {
     </span>
   );
 
-  const conexao = onu?.conexao || "";
-  const conexaoLower = conexao.toLowerCase();
-  const online = conexaoLower.includes("online") ? true : conexaoLower.includes("offline") ? false : null;
-
+  const online = onu?.online ?? null;
   const rx = onu?.rx ?? null;
   const signal = rx !== null ? signalInfo(rx) : null;
+  const leitura = formatLeitura(onu?.leitura);
 
-  const temperatura = onu?.temperatura ?? null;
-  const distancia = onu?.distanciaKm ?? null;
+  const tx = onu?.tx ?? null;
+  const oltRx = onu?.oltRx ?? null;
+  const temEquipamento = tx !== null || oltRx !== null;
 
   return (
     <section className="overflow-hidden rounded-xl border border-htech-100 bg-white shadow-sm">
@@ -75,17 +82,20 @@ export default function ContractCard({ contrato }) {
           </p>
         )}
 
-        <div className="mt-3 grid grid-cols-3 gap-2">
+        <div className="mt-3 grid grid-cols-2 gap-2">
           <Tile label="Conexão">
-            {conexao ? (
-              <span className="flex items-center gap-1.5 text-sm font-semibold text-slate-800">
-                <span
-                  className={`h-2.5 w-2.5 rounded-full ${
-                    online === true ? "bg-emerald-500" : online === false ? "bg-red-500" : "bg-htech-gray"
-                  }`}
-                />
-                {conexao}
-              </span>
+            {online !== null ? (
+              <>
+                <span className="flex items-center gap-1.5 text-sm font-semibold text-slate-800">
+                  <span className={`h-2.5 w-2.5 rounded-full ${online ? "bg-emerald-500" : "bg-red-500"}`} />
+                  {online ? "Online" : "Offline"}
+                </span>
+                {onu?.olt && (
+                  <p className="mt-1 truncate text-sm text-htech-gray" title={`${onu.olt} ${onu.posicao}`}>
+                    {onu.olt}
+                  </p>
+                )}
+              </>
             ) : (
               fallback
             )}
@@ -94,29 +104,17 @@ export default function ContractCard({ contrato }) {
           <Tile label="Sinal ONU">
             {signal ? (
               <>
-                <p className="text-sm font-semibold text-slate-800">{formatDecimal(rx)} dBm</p>
+                <p className="text-sm font-semibold text-slate-800">{dbm(rx)}</p>
                 <div className="relative mt-1.5 h-1.5 rounded-full bg-gradient-to-r from-red-400 via-amber-400 to-emerald-500">
                   <span
                     className="absolute -top-0.5 h-2.5 w-2.5 -translate-x-1/2 rounded-full border-2 border-white bg-htech-darker"
                     style={{ left: `${signalPosition(rx)}%` }}
                   />
                 </div>
-                <p className={`mt-1 text-sm font-medium ${signal.text}`}>{signal.label}</p>
-              </>
-            ) : (
-              fallback
-            )}
-          </Tile>
-
-          <Tile label="Equipamento">
-            {temperatura !== null || distancia !== null ? (
-              <>
-                <p className="text-sm font-semibold text-slate-800">
-                  {temperatura !== null ? `${formatDecimal(temperatura, 0)} °C` : "—"}
+                <p className="mt-1 text-sm">
+                  <span className={`font-medium ${signal.text}`}>{signal.label}</span>
+                  {leitura && <span className="text-htech-gray"> · {leitura}</span>}
                 </p>
-                {distancia !== null && (
-                  <p className="text-sm text-htech-gray">{formatDecimal(distancia)} km da OLT</p>
-                )}
               </>
             ) : (
               fallback

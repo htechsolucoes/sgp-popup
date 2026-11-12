@@ -1,5 +1,5 @@
 import { useState } from "react";
-
+import { copyText } from "../utils/clipboard";
 import { formatCpfCnpj } from "../services/api";
 import { formatMoney, initials } from "../utils/format";
 import { IconCheck, IconCopy, IconRefresh } from "./Icons";
@@ -21,12 +21,9 @@ export default function ClientHeader({ nome, cpfCnpj, resumo, onRefresh, refresh
   const docLabel = cpfCnpj.length === 14 ? "CNPJ" : "CPF";
 
   async function copy() {
-    try {
-      await navigator.clipboard.writeText(cpfCnpj);
+    if (await copyText(cpfCnpj)) {
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
-    } catch {
-      /* navegador bloqueou a área de transferência */
     }
   }
 

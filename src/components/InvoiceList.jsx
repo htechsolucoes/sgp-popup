@@ -1,5 +1,60 @@
+import { useState } from "react";
+
+import { fetchPix } from "../services/api";
+import { copyText } from "../utils/clipboard";
 import { dueLabel, formatDate, formatMoney } from "../utils/format";
-import { IconDownload, IconReceipt } from "./Icons";
+import { IconCheck, IconDownload, IconQrcode, IconReceipt } from "./Icons";
+
+const PIX_STYLE = {
+  idle: "border-htech bg-white text-htech hover:bg-htech-50",
+  loading: "border-htech-100 bg-htech-50 text-htech-dark",
+  copied: "border-emerald-500 bg-emerald-50 text-emerald-700",
+  error: "border-red-300 bg-red-50 text-red-600"
+};
+
+const PIX_LABEL = {
+  idle: "PIX",
+  loading: "Gerando...",
+  copied: "Copiado",
+  error: "Indisponível"
+};
+
+function PixButton({ fatura }) {
+  const [state, setState] = useState("idle");
+  const [codigo, setCodigo] = useState(fatura.codigoPix || "");
+
+  async function handleClick() {
+    if (state === "loading") return;
+    setState("loading");
+
+    try {
+      let pix = codigo;
+
+      if (!pix) {
+        const data = await fetchPix(fatura.id, fatura.contratoId);
+        pix = data.codigo;
+        setCodigo(pix);
+      }
+
+      setState((await copyText(pix)) ? "copied" : "error");
+    } catch {
+      setState("error");
+    }
+
+    setTimeout(() => setState("idle"), 2000);
+  }
+
+  return (
+    <button
+      onClick={handleClick}
+      title="Copiar PIX copia e cola"
+      className={`flex min-w-[112px] items-center justify-center gap-1 rounded-lg border px-3 py-1.5 text-sm font-medium transition ${PIX_STYLE[state]}`}
+    >
+      {state === "copied" ? <IconCheck width={14} height={14} /> : <IconQrcode width={14} height={14} />}
+      {PIX_LABEL[state]}
+    </button>
+  );
+}
 
 export default function InvoiceList({ faturas, total }) {
   return (
@@ -37,15 +92,16 @@ export default function InvoiceList({ faturas, total }) {
                   </p>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <span className="text-sm font-semibold text-htech-darker">{formatMoney(fatura.valor)}</span>
+                <div className="flex items-center gap-2">
+                  <span className="mr-1 text-sm font-semibold text-htech-darker">{formatMoney(fatura.valor)}</span>
+
                   {fatura.link ? (
                     <a
                       href={fatura.link}
                       target="_blank"
                       rel="noopener noreferrer"
                       title="Baixar boleto"
-                      className="flex items-center gap-1 rounded-lg bg-htech px-3 py-1.5 text-sm font-medium text-white transition hover:bg-htech-dark"
+                      className="flex items-center gap-1 rounded-lg border border-htech bg-htech px-3 py-1.5 text-sm font-medium text-white transition hover:bg-htech-dark"
                     >
                       <IconDownload width={14} height={14} />
                       Boleto
@@ -53,6 +109,8 @@ export default function InvoiceList({ faturas, total }) {
                   ) : (
                     <span className="text-sm text-htech-gray">Sem boleto</span>
                   )}
+
+                  <PixButton fatura={fatura} />
                 </div>
               </li>
             );
