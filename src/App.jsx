@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+
 import { useContact } from "./hooks/useContact";
 import { useSgpCliente } from "./hooks/useSgp";
+import { formatCpfCnpj } from "./services/api";
 import ClientHeader from "./components/ClientHeader";
 import ContractCard from "./components/ContractCard";
 import InvoiceList from "./components/InvoiceList";
 import MaintenanceBanner from "./components/MaintenanceBanner";
 import PppoeCard from "./components/PppoeCard";
+import StatusScreen from "./components/StatusScreen";
 import WifiCard from "./components/WifiCard";
 
 // Aceita /?contactId=ID ou /ID
@@ -23,30 +26,40 @@ function getContactId() {
 
 const contactId = getContactId();
 
-function contactErrorMessage(error) {
+function contactError(error) {
   if (error?.status === 404 || error?.status === 400) {
-    return "Contato não encontrado na wts.chat. Verifique se o ID está correto.";
+    return {
+      title: "Contato não encontrado",
+      description: "Não encontramos este contato na wts.chat. Abra o popup de novo a partir da conversa."
+    };
   }
-  return "Não foi possível carregar os dados do contato. Tente novamente em instantes.";
+  return {
+    title: "Não foi possível carregar o contato",
+    description: "A wts.chat não respondeu como esperado. Tente novamente em instantes."
+  };
 }
 
-function sgpErrorMessage(error) {
-  if (error?.status === 404) return "Nenhum cliente com este CPF/CNPJ foi encontrado no SGP.";
-  if (error?.status === 504) return "O SGP demorou para responder. Tente novamente em instantes.";
-  return "Não foi possível consultar o SGP. Tente novamente em instantes.";
+function sgpError(error, cpfCnpj) {
+  if (error?.status === 404) {
+    return {
+      title: "Cliente não encontrado no SGP",
+      description: `Nenhum cliente com o CPF/CNPJ ${formatCpfCnpj(cpfCnpj)} foi encontrado.`
+    };
+  }
+  if (error?.status === 504) {
+    return {
+      title: "O SGP demorou para responder",
+      description: "A consulta passou do tempo limite. Tente novamente em instantes."
+    };
+  }
+  return {
+    title: "Não foi possível consultar o SGP",
+    description: "Ocorreu um erro ao buscar os dados do cliente. Tente novamente em instantes."
+  };
 }
 
 function Shell({ children }) {
   return <main className="w-full p-4">{children}</main>;
-}
-
-function Message({ tone = "info", children }) {
-  const styles = {
-    info: "border-htech-100 bg-htech-50 text-htech-darker",
-    warn: "border-amber-200 bg-amber-50 text-amber-700",
-    error: "border-red-200 bg-red-50 text-red-700"
-  };
-  return <div className={`rounded-xl border p-4 text-sm ${styles[tone]}`}>{children}</div>;
 }
 
 export default function App() {
@@ -62,25 +75,34 @@ export default function App() {
 
   if (!contactId) {
     return (
-      <Shell>
-        <Message tone="error">Nenhum contato informado. Abra este popup a partir de um atendimento.</Message>
-      </Shell>
+      <StatusScreen
+        title="Nenhum atendimento selecionado"
+        description="Abra este popup a partir de uma conversa na plataforma."
+      />
     );
   }
 
-  if (contact.isLoading) return <Shell><Message>Carregando contato...</Message></Shell>;
-  if (contact.error) return <Shell><Message tone="error">{contactErrorMessage(contact.error)}</Message></Shell>;
+  if (contact.isLoading) return <StatusScreen loading message="Carregando contato..." />;
+
+  if (contact.error) {
+    return <StatusScreen {...contactError(contact.error)} onRetry={() => contact.refetch()} />;
+  }
 
   if (!cpfCnpj) {
     return (
-      <Shell>
-        <Message tone="error">Este contato não tem o campo "cpf-cnpj" preenchido na wts.chat.</Message>
-      </Shell>
+      <StatusScreen
+        title="CPF/CNPJ não informado"
+        description='Preencha o campo "cpf-cnpj" deste contato na wts.chat e tente novamente.'
+        onRetry={() => contact.refetch()}
+      />
     );
   }
 
-  if (sgp.isLoading) return <Shell><Message>Buscando cliente no SGP...</Message></Shell>;
-  if (sgp.error) return <Shell><Message tone="error">{sgpErrorMessage(sgp.error)}</Message></Shell>;
+  if (sgp.isLoading) return <StatusScreen loading message="Buscando cliente no SGP..." />;
+
+  if (sgp.error) {
+    return <StatusScreen {...sgpError(sgp.error, cpfCnpj)} onRetry={() => sgp.refetch()} />;
+  }
 
   const { cliente, resumo, contratos, avisos = [] } = sgp.data;
   const contrato = contratos.find(c => c.id === selectedId) || contratos[0];
@@ -98,8 +120,8 @@ export default function App() {
       />
 
       {avisos.map(aviso => (
-        <div key={aviso} className="mt-3">
-          <Message tone="warn">{aviso}</Message>
+        <div key={aviso} className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700">
+          {aviso}
         </div>
       ))}
 
