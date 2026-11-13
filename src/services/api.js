@@ -1,3 +1,5 @@
+import { CPF_FIELDS } from "../config";
+
 // Cliente front-end: conversa apenas com as rotas /api (o token fica no servidor).
 
 const API_BASE = import.meta.env?.VITE_API_BASE || "/api";
@@ -65,8 +67,10 @@ export function formatCpfCnpj(digits = "") {
  * O objeto original fica em `raw`.
  */
 export function normalizeContact(contact = {}) {
-  const cpfCnpj = String(getCustomField(contact.customFields, "cpf-cnpj") || "").replace(/\D/g, "");
-
+  const cpfCnpj = String(
+    CPF_FIELDS.map(name => getCustomField(contact.customFields, name)).find(Boolean) || ""
+  ).replace(/\D/g, "");
+  
   return {
     id: contact.id,
     name: contact.name || contact.displayName || "",
