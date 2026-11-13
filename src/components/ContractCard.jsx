@@ -2,6 +2,7 @@ import { useOnu } from "../hooks/useSgp";
 import { formatDecimal } from "../utils/format";
 import { useContractActions } from "./ContractActions";
 import { IconLockOpen, IconPin, IconPower, IconRouter } from "./Icons";
+import { features } from "../config";
 
 const STATUS_STYLE = {
   1: "bg-emerald-100 text-emerald-700", // Ativo
@@ -150,7 +151,7 @@ export default function ContractCard({ contrato }) {
           </Tile>
         </div>
 
-        <div className="mt-3 grid grid-cols-2 gap-2">
+        <div className={`mt-3 grid gap-2 ${features.wifi ? "grid-cols-2" : "grid-cols-1"}`}>
           <ActionButton
             icon={<IconPower width={15} height={15} />}
             label="Reiniciar ONU"
@@ -158,13 +159,15 @@ export default function ContractCard({ contrato }) {
             disabledReason="ONU não encontrada para este contrato"
             onClick={() => actions.open("reiniciar-onu")}
           />
-          <ActionButton
-            icon={<IconRouter width={15} height={15} />}
-            label="Reiniciar roteador"
-            disabled={!onu?.servicoId}
-            disabledReason="Roteador não encontrado para este contrato"
-            onClick={() => actions.open("reiniciar-roteador")}
-          />
+          {features.wifi && (
+            <ActionButton
+              icon={<IconRouter width={15} height={15} />}
+              label="Reiniciar roteador"
+              disabled={!onu?.servicoId}
+              disabledReason="Roteador não encontrado para este contrato"
+              onClick={() => actions.open("reiniciar-roteador")}
+            />
+          )}
         </div>
 
         {actions.feedback && (

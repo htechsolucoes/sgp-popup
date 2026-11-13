@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-
+import { features } from "./config";
 import { useContact } from "./hooks/useContact";
 import { useSgpCliente } from "./hooks/useSgp";
 import { formatCpfCnpj } from "./services/api";
@@ -151,7 +151,7 @@ export default function App() {
         </div>
         <div className="flex min-w-0 flex-col gap-3">
           <InvoiceList faturas={contrato.faturas} total={contrato.totalAberto} />
-          <WifiCard key={`w-${contrato.id}`} contratoId={contrato.id} />
+          {features.wifi && <WifiCard key={`w-${contrato.id}`} contratoId={contrato.id} />}
         </div>
       </div>
     </Shell>

@@ -27,6 +27,10 @@ function rotulo(w, i) {
 }
 
 export default async function handler(req, res) {
+  if (process.env.VITE_FEATURE_WIFI !== "true") {
+    return res.status(404).json({ error: "Função não disponível" });
+  }
+
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Método não permitido" });
   }

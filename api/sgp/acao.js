@@ -59,6 +59,11 @@ export default async function handler(req, res) {
   const body = readBody(req);
   const executar = ACOES[body.acao];
 
+  const acoesCpe = ["alterar-wifi", "reiniciar-roteador"];
+  if (acoesCpe.includes(body.acao) && process.env.VITE_FEATURE_WIFI !== "true") {
+    return res.status(404).json({ error: "Função não disponível" });
+  }
+
   if (!executar) {
     return res.status(400).json({ error: "Ação inválida" });
   }
