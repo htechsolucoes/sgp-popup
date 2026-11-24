@@ -10,6 +10,7 @@ import InvoiceList from "./components/InvoiceList";
 import MaintenanceBanner from "./components/MaintenanceBanner";
 import PppoeCard from "./components/PppoeCard";
 import StatusScreen from "./components/StatusScreen";
+import TicketsCard from "./components/TicketsCard";
 import WifiCard from "./components/WifiCard";
 
 // Aceita /?contactId=ID ou /ID
@@ -151,6 +152,7 @@ export default function App() {
         </div>
         <div className="flex min-w-0 flex-col gap-3">
           <InvoiceList faturas={contrato.faturas} total={contrato.totalAberto} />
+          <TicketsCard key={`t-${contrato.id}`} contratoId={contrato.id} contato={contact.data} />
           {features.wifi && <WifiCard key={`w-${contrato.id}`} contratoId={contrato.id} />}
         </div>
       </div>

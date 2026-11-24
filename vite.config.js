@@ -14,7 +14,9 @@ function localApi() {
     { pattern: /^\/api\/sgp\/manutencao\/?$/, file: "./api/sgp/manutencao.js" },
     { pattern: /^\/api\/sgp\/pppoe\/?$/, file: "./api/sgp/pppoe.js" },
     { pattern: /^\/api\/sgp\/wifi\/?$/, file: "./api/sgp/wifi.js" },
-    { pattern: /^\/api\/sgp\/acao\/?$/, file: "./api/sgp/acao.js" }
+    { pattern: /^\/api\/sgp\/acao\/?$/, file: "./api/sgp/acao.js" },
+    { pattern: /^\/api\/sgp\/chamados\/?$/, file: "./api/sgp/chamados.js" },
+    { pattern: /^\/api\/sgp\/chamado-opcoes\/?$/, file: "./api/sgp/chamado-opcoes.js" }
   ];
 
   return {

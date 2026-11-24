@@ -122,3 +122,16 @@ export const IconLockOpen = props => (
     <path d="M8 11V7a4 4 0 0 1 7.8-1.3" />
   </svg>
 );
+
+export const IconTicket = props => (
+  <svg {...base} {...props}>
+    <path d="M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v3a2 2 0 0 0 0 4v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-3a2 2 0 0 0 0-4z" />
+    <path d="M14 5v2M14 11v2M14 17v2" />
+  </svg>
+);
+
+export const IconPlus = props => (
+  <svg {...base} {...props}>
+    <path d="M12 5v14M5 12h14" />
+  </svg>
+);

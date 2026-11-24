@@ -48,6 +48,29 @@ const ACOES = {
       auth: "basic",
       timeoutMs: 20000
     });
+  },
+
+  "criar-chamado": body => {
+    const contrato = onlyDigits(body.contrato);
+    const conteudo = String(body.conteudo || "").trim();
+
+    if (!contrato) throw badRequest("Contrato não informado");
+    if (conteudo.length < 10) throw badRequest("Descreva o problema com pelo menos 10 caracteres");
+    if (conteudo.length > 2000) throw badRequest("Descrição muito longa (máximo 2000 caracteres)");
+
+    return sgpRequest("/api/ura/chamado/", {
+      params: {
+        contrato,
+        conteudo,
+        conteudolimpo: 1, // não adiciona a mensagem padrão da URA
+        ocorrenciatipo: onlyDigits(body.tipo) || undefined,
+        motivoos: body.gerarOs ? onlyDigits(body.motivo) || undefined : undefined,
+        desativa_os: body.gerarOs ? undefined : 1,
+        metodo: process.env.SGP_METODO_CHAMADO || 5, // 5 = WhatsApp
+        contato_nome: String(body.contatoNome || "").slice(0, 100) || undefined,
+        contato_telefone: String(body.contatoTelefone || "").slice(0, 30) || undefined
+      }
+    });
   }
 };
 
@@ -77,6 +100,10 @@ export default async function handler(req, res) {
 
     if (body.acao === "liberar" && resp.data?.liberado === false) {
       return res.status(422).json({ error: resp.data?.msg || "Liberação não permitida para este contrato" });
+    }
+
+    if (body.acao === "criar-chamado" && Number(resp.data?.status) === 0) {
+      return res.status(422).json({ error: resp.data?.msg || "O SGP não abriu o chamado" });
     }
 
     return res.status(200).json({ ok: true, dados: resp.data });

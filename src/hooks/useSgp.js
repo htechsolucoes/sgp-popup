@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
+  fetchChamadoOpcoes,
+  fetchChamados,
   fetchManutencoes,
   fetchOnu,
   fetchPppoe,
@@ -64,6 +66,27 @@ export function useWifi(servicoId) {
 }
 
 /** Ações que alteram algo no SGP (reiniciar, liberar, Wi-Fi). */
+export function useChamados(contratoId) {
+  return useQuery({
+    queryKey: ["sgp-chamados", contratoId],
+    queryFn: () => fetchChamados(contratoId),
+    enabled: Boolean(contratoId),
+    refetchInterval: false,
+    staleTime: 30_000,
+    retry: false
+  });
+}
+
+export function useChamadoOpcoes() {
+  return useQuery({
+    queryKey: ["sgp-chamado-opcoes"],
+    queryFn: fetchChamadoOpcoes,
+    refetchInterval: false,
+    staleTime: 10 * 60_000, // tipos e motivos quase nunca mudam
+    retry: false
+  });
+}
+
 export function useAcao() {
   const queryClient = useQueryClient();
 
@@ -72,6 +95,7 @@ export function useAcao() {
     onSuccess: (_data, { acao }) => {
       if (acao === "liberar") queryClient.invalidateQueries({ queryKey: ["sgp-cliente"] });
       if (acao === "alterar-wifi") queryClient.invalidateQueries({ queryKey: ["sgp-wifi"] });
+      if (acao === "criar-chamado") queryClient.invalidateQueries({ queryKey: ["sgp-chamados"] });
     }
   });
 }

@@ -125,3 +125,11 @@ export function fetchWifi(servicoId) {
 export function runAcao(acao, dados) {
   return request("/sgp/acao", { method: "POST", body: { acao, ...dados } });
 }
+
+export function fetchChamados(contratoId) {
+  return request(`/sgp/chamados?contrato=${encodeURIComponent(contratoId)}`);
+}
+
+export function fetchChamadoOpcoes() {
+  return request("/sgp/chamado-opcoes");
+}
